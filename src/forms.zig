@@ -32,18 +32,23 @@ pub const Form = struct {
     allocator: *Allocator,
     fields: ArgMap,
     files: FileMap,
+    possible_file_body: ?[]const u8 = null,
 
     pub fn init(allocator: *Allocator) Form {
         return Form{
             .allocator = allocator,
             .fields = ArgMap.init(allocator),
             .files = FileMap.init(allocator),
+            .possible_file_body = null,
         };
     }
 
     pub fn deinit(self: *Form) void {
         self.fields.deinit();
         self.files.deinit();
+        if (self.possible_file_body) |body| {
+            self.allocator.free(body);
+        }
     }
 
     pub fn parse(self: *Form, request: *Request) !void {
@@ -53,10 +58,18 @@ pub const Form = struct {
                 try request.readBody(stream);
             }
         }
+        // TODO: Parsing should use a stream
         if (request.content) |content| {
             switch (content.type) {
                 .TempFile => {
-                    return error.NotImplemented; // TODO: Parsing should use a stream
+                    self.possible_file_body = content.data.file.file.readToEndAlloc(
+                        self.allocator,
+                        std.math.maxInt(usize),
+                    );
+                    try self.parseMultipart(
+                        content_type,
+                        self.possible_file_body.?,
+                    );
                 },
                 .Buffer => {
                     try self.parseMultipart(content_type, content.data.buffer);
