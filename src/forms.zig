@@ -62,7 +62,7 @@ pub const Form = struct {
         if (request.content) |content| {
             switch (content.type) {
                 .TempFile => {
-                    self.possible_file_body = content.data.file.file.readToEndAlloc(
+                    self.possible_file_body = try content.data.file.file.readToEndAlloc(
                         self.allocator,
                         std.math.maxInt(usize),
                     );
