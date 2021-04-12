@@ -275,14 +275,11 @@ pub fn encodeHeader(allocator: *Allocator, key: []const u8, params: Headers) ![]
             try out.append(entry.key);
         } else {
             // TODO: quote if necessary.
-            try out.append(
-                try std.fmt.allocPrint(&arena.allocator,
-                    "{}={}", .{entry.key, entry.value}));
+            try out.append(try std.fmt.allocPrint(&arena.allocator, "{}={}", .{ entry.key, entry.value }));
         }
     }
     return try mem.join(allocator, "; ", out.items);
 }
-
 
 test "encode-header" {
     const allocator = std.testing.allocator;

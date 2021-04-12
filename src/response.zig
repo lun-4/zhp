@@ -15,7 +15,6 @@ const IOStream = web.IOStream;
 
 const Bytes = std.ArrayList(u8);
 
-
 pub const Response = struct {
     pub const WriteError = error{OutOfMemory};
     pub const Writer = std.io.Writer(*Response, WriteError, Response.writeFn);
@@ -48,7 +47,7 @@ pub const Response = struct {
 
     // Must be called before writing
     pub fn prepare(self: *Response) void {
-        self.stream = Writer{.context = self};
+        self.stream = Writer{ .context = self };
     }
 
     // Reset the request so it can be reused without reallocating memory
@@ -82,9 +81,7 @@ pub const Response = struct {
         self.headers.deinit();
         self.body.deinit();
     }
-
 };
-
 
 test "response" {
     const allocator = std.testing.allocator;

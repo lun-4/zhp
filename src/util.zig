@@ -13,11 +13,9 @@ const assert = std.debug.assert;
 
 pub const Bytes = std.ArrayList(u8);
 
-
 pub fn isCtrlChar(ch: u8) callconv(.Inline) bool {
     return (ch < @as(u8, 40) and ch != '\t') or ch == @as(u8, 177);
 }
-
 
 test "is-control-char" {
     testing.expect(isCtrlChar('A') == false);
@@ -45,7 +43,7 @@ const token_map = [_]u1{
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
 pub fn isTokenChar(ch: u8) callconv(.Inline) bool {
@@ -53,7 +51,7 @@ pub fn isTokenChar(ch: u8) callconv(.Inline) bool {
 }
 
 pub const IOStream = struct {
-    pub const invalid_stream = Stream{.handle=0};
+    pub const invalid_stream = Stream{ .handle = 0 };
     pub const Error = Stream.WriteError;
     pub const ReadError = Stream.ReadError;
     const Self = @This();
@@ -84,8 +82,7 @@ pub const IOStream = struct {
         };
     }
 
-    pub fn initCapacity(allocator: *Allocator, stream: ?Stream,
-                        in_capacity: usize, out_capacity: usize) !IOStream {
+    pub fn initCapacity(allocator: *Allocator, stream: ?Stream, in_capacity: usize, out_capacity: usize) !IOStream {
         return IOStream{
             .allocator = allocator,
             .in_stream = if (stream) |s| s else invalid_stream,
@@ -217,12 +214,12 @@ pub const IOStream = struct {
     pub const Reader = std.io.Reader(*IOStream, Stream.ReadError, IOStream.readFn);
 
     pub fn reader(self: *Self) Reader {
-        return Reader{.context=self};
+        return Reader{ .context = self };
     }
 
     // Return the amount of bytes waiting in the input buffer
     pub fn amountBuffered(self: *Self) callconv(.Inline) usize {
-        return self._in_end_index-self._in_start_index;
+        return self._in_end_index - self._in_start_index;
     }
 
     pub fn isEmpty(self: *Self) callconv(.Inline) bool {
@@ -324,7 +321,6 @@ pub const IOStream = struct {
         }
     }
 
-
     // TODO: Inline is broken
     pub fn fillBuffer(self: *Self) !void {
         const n = try self.readFn(self.in_buffer);
@@ -337,8 +333,7 @@ pub const IOStream = struct {
     pub fn readByte(self: *Self) !u8 {
         if (self._in_end_index == self._in_start_index) {
             // Do a direct read into the input buffer
-            self._in_end_index = try self.readFn(
-                self.in_buffer[0..self.in_buffer.len]);
+            self._in_end_index = try self.readFn(self.in_buffer[0..self.in_buffer.len]);
             self._in_start_index = 0;
             if (self._in_end_index < 1) return error.EndOfStream;
         }
@@ -367,11 +362,7 @@ pub const IOStream = struct {
 
     // Read up to limit bytes from the stream buffer until the expression
     // returns true or the limit is hit. The initial value is checked first.
-    pub fn readUntilExpr(
-            self: *Self,
-            comptime expr: fn(ch: u8) bool,
-            initial: u8,
-            limit: usize) u8 {
+    pub fn readUntilExpr(self: *Self, comptime expr: fn (ch: u8) bool, initial: u8, limit: usize) u8 {
         var found = false;
         var ch: u8 = initial;
         while (!found and self.readCount() + 8 < limit) {
@@ -397,12 +388,7 @@ pub const IOStream = struct {
     // Read up to limit bytes from the stream buffer until the expression
     // returns true or the limit is hit. The initial value is checked first.
     // If the expression returns an error abort.
-    pub fn readUntilExprValidate(
-            self: *Self,
-            comptime ErrorType: type,
-            comptime expr: fn(ch: u8) ErrorType!bool,
-            initial: u8,
-            limit: usize) !u8 {
+    pub fn readUntilExprValidate(self: *Self, comptime ErrorType: type, comptime expr: fn (ch: u8) ErrorType!bool, initial: u8, limit: usize) !u8 {
         var found = false;
         var ch: u8 = initial;
         while (!found and self.readCount() + 8 < limit) {
@@ -431,7 +417,7 @@ pub const IOStream = struct {
     pub const Writer = std.io.Writer(*IOStream, Stream.WriteError, IOStream.writeFn);
 
     pub fn writer(self: *Self) Writer {
-        return Writer{.context=self};
+        return Writer{ .context = self };
     }
 
     fn writeFn(self: *Self, bytes: []const u8) !usize {
@@ -498,13 +484,13 @@ pub const IOStream = struct {
         if (self.closed) return;
         self.closed = true;
         // TODO: Doesn't need closed?
-//         const in_stream = &self.in_stream;
-//         const out_stream = &self.out_stream ;
-//         if (in_stream.handle != 0) in_stream.close();
-//         std.debug.warn("Close in={} out={}\n", .{in_stream, out_stream});
-//         if (in_stream.handle != out_stream.handle and out_stream.handle != 0) {
-//             out_stream.close();
-//         }
+        //         const in_stream = &self.in_stream;
+        //         const out_stream = &self.out_stream ;
+        //         if (in_stream.handle != 0) in_stream.close();
+        //         std.debug.warn("Close in={} out={}\n", .{in_stream, out_stream});
+        //         if (in_stream.handle != out_stream.handle and out_stream.handle != 0) {
+        //             out_stream.close();
+        //         }
     }
 
     pub fn deinit(self: *Self) void {
@@ -518,7 +504,6 @@ pub const IOStream = struct {
             allocator.free(self.out_buffer);
         }
     }
-
 };
 
 // The event based lock doesn't work without evented io
@@ -574,10 +559,8 @@ pub fn ObjectPool(comptime T: type) type {
             self.objects.deinit();
             self.free_objects.deinit();
         }
-
     };
 }
-
 
 test "object-pool" {
     const Point = struct {
@@ -591,7 +574,7 @@ test "object-pool" {
     testing.expect(pool.get() == null);
 
     // Create
-    var test_point = Point{.x=10, .y=3};
+    var test_point = Point{ .x = 10, .y = 3 };
     const pt = try pool.create();
     pt.* = test_point;
 
@@ -604,7 +587,6 @@ test "object-pool" {
     // Should get the same thing back
     testing.expectEqual(pool.get().?.*, test_point);
 }
-
 
 // An unmanaged map of arrays
 pub fn StringArrayMap(comptime T: type) type {
@@ -671,8 +653,6 @@ pub fn StringArrayMap(comptime T: type) type {
     };
 }
 
-
-
 test "string-array-map" {
     const Map = StringArrayMap([]const u8);
     var map = Map.init(std.testing.allocator);
@@ -683,5 +663,4 @@ test "string-array-map" {
     const query = map.getArray("query").?;
     testing.expect(query.items.len == 3);
     testing.expect(mem.eql(u8, query.items[0], "a"));
-
 }

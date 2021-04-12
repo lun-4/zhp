@@ -10,7 +10,6 @@ const Handler = web.Handler;
 const Application = web.Application;
 const ServerRequest = web.ServerRequest;
 
-
 pub const LoggingMiddleware = struct {
     pub fn processResponse(app: *Application, server_request: *ServerRequest) !void {
         const request = &server_request.request;
@@ -20,20 +19,15 @@ pub const LoggingMiddleware = struct {
             @tagName(request.method),
             request.path,
             request.client,
-            response.body.items.len});
+            response.body.items.len,
+        });
     }
 };
-
 
 pub const SessionMiddleware = struct {
     // If you want storage use it statically
 
-    pub fn processRequest(app: *Application, server_request: *ServerRequest) !void {
+    pub fn processRequest(app: *Application, server_request: *ServerRequest) !void {}
 
-    }
-
-    pub fn processResponse(app: *Application, server_request: *ServerRequest) !void {
-
-    }
+    pub fn processResponse(app: *Application, server_request: *ServerRequest) !void {}
 };
-
