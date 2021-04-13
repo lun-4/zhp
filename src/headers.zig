@@ -55,7 +55,7 @@ pub const Headers = struct {
     ) !void {
         try std.fmt.format(out_stream, "Headers{{", .{});
         for (self.headers.items) |header| {
-            try std.fmt.format(out_stream, "\"{s}\": \"{s}\", ", .{header.key, header.value});
+            try std.fmt.format(out_stream, "\"{s}\": \"{s}\", ", .{ header.key, header.value });
         }
         try std.fmt.format(out_stream, "}}", .{});
     }
@@ -78,8 +78,7 @@ pub const Headers = struct {
         return self.get(key) catch null;
     }
 
-    pub fn getDefault(self: *Headers, key: []const u8,
-                      default: []const u8) []const u8 {
+    pub fn getDefault(self: *Headers, key: []const u8, default: []const u8) []const u8 {
         return self.get(key) catch default;
     }
 
@@ -103,21 +102,21 @@ pub const Headers = struct {
         // If the key already exists under a different name don't add it again
         const i = self.lookup(key) catch |err| switch (err) {
             error.KeyError => {
-                try self.headers.append(Header{.key=key, .value=value});
+                try self.headers.append(Header{ .key = key, .value = value });
                 return;
             },
             else => return err,
         };
-        self.headers.items[i] = Header{.key=key, .value=value};
+        self.headers.items[i] = Header{ .key = key, .value = value };
     }
 
     // Put without checking for duplicates
     pub fn append(self: *Headers, key: []const u8, value: []const u8) !void {
-        return self.headers.append(Header{.key=key, .value=value});
+        return self.headers.append(Header{ .key = key, .value = value });
     }
 
     pub fn appendAssumeCapacity(self: *Headers, key: []const u8, value: []const u8) void {
-        return self.headers.appendAssumeCapacity(Header{.key=key, .value=value});
+        return self.headers.appendAssumeCapacity(Header{ .key = key, .value = value });
     }
 
     pub fn remove(self: *Headers, key: []const u8) !void {
@@ -173,14 +172,13 @@ pub const Headers = struct {
                 },
                 ':' => return error.BadRequest, // Empty key
                 else => {
-                    index = stream.readCount()-1;
+                    index = stream.readCount() - 1;
 
                     // Read header name
-                    ch = try stream.readUntilExprValidate(
-                        error{BadRequest}, isColonValidateToken, ch, read_limit);
+                    ch = try stream.readUntilExprValidate(error{BadRequest}, isColonValidateToken, ch, read_limit);
 
                     // Header name
-                    key = buf.items[index..stream.readCount()-1];
+                    key = buf.items[index .. stream.readCount() - 1];
 
                     // Strip whitespace
                     while (stream.readCount() < read_limit) {
@@ -191,11 +189,11 @@ pub const Headers = struct {
             }
 
             // Read value
-            index = stream.readCount()-1;
+            index = stream.readCount() - 1;
             ch = stream.readUntilExpr(isControlOrPrint, ch, read_limit);
 
             // TODO: Strip trailing spaces and tabs?
-            value = buf.items[index..stream.readCount()-1];
+            value = buf.items[index .. stream.readCount() - 1];
 
             // Ignore any remaining non-print characters
             ch = stream.readUntilExpr(isControlOrPrint, ch, read_limit);
@@ -233,9 +231,7 @@ pub const Headers = struct {
         var stream = IOStream.fromBuffer(fba.buffer);
         try self.parse(&buf, &stream, max_size);
     }
-
 };
-
 
 test "headers-get" {
     const allocator = std.testing.allocator;
@@ -245,10 +241,8 @@ test "headers-get" {
     testing.expectError(error.KeyError, headers.get("Accept-Type"));
     testing.expectEqualSlices(u8, try headers.get("cookie"), "Nom;nom;nom");
     testing.expectEqualSlices(u8, try headers.get("cOOKie"), "Nom;nom;nom");
-    testing.expectEqualSlices(u8,
-        headers.getDefault("User-Agent" , "zig"), "zig");
-    testing.expectEqualSlices(u8,
-        headers.getDefault("cookie" , "zig"), "Nom;nom;nom");
+    testing.expectEqualSlices(u8, headers.getDefault("User-Agent", "zig"), "zig");
+    testing.expectEqualSlices(u8, headers.getDefault("cookie", "zig"), "Nom;nom;nom");
 }
 
 test "headers-put" {
@@ -283,7 +277,6 @@ test "headers-pop" {
     testing.expect(!headers.contains("Cookie"));
     testing.expect(mem.eql(u8, headers.popDefault("Cookie", "Hello"), "Hello"));
 }
-
 
 test "headers-parse" {
     const HEADERS =
